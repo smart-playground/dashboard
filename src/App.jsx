@@ -14,6 +14,8 @@ import Dashboard from './pages/Dashboard';
 import Expenses from './pages/Expenses';
 import ImportExpeneses from './pages/ImportExpenses';
 import Analytics from './pages/Analytics'
+import NoteEditor from "./pages/NoteEditor";
+import Notes from "./pages/Notes";
 
 
 
@@ -35,6 +37,8 @@ function App() {
         <Route exact path="/dashboard/analytics" element={<Analytics />} />
         <Route exact path="/expenses" element={<Expenses />} />
         <Route exact path="/expenses/import-expenses" element={<ImportExpeneses />} />
+        <Route exact path="/notes" element={<Notes />} />
+        <Route exact path="/notes/note-editor" element={<NoteEditor />} />
       </Routes>
     </>
   );
