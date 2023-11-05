@@ -9,5 +9,7 @@
 @import 'additional-styles/toggle-switch.css';
 @import 'additional-styles/flatpickr.css';
 @import 'additional-styles/theme.css';
+@import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+
 
 @import 'tailwindcss/utilities';

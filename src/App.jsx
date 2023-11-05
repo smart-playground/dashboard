@@ -16,6 +16,8 @@ import ImportExpeneses from './pages/ImportExpenses';
 import Analytics from './pages/Analytics'
 import NoteEditor from "./pages/NoteEditor";
 import Notes from "./pages/Notes";
+import Shopping from "./pages/Shopping";
+import ShoppingCatalog from "./pages/ShoppingCatalog";
 
 
 
@@ -39,6 +41,9 @@ function App() {
         <Route exact path="/expenses/import-expenses" element={<ImportExpeneses />} />
         <Route exact path="/notes" element={<Notes />} />
         <Route exact path="/notes/note-editor" element={<NoteEditor />} />
+        <Route exact path="/shopping" element={<Shopping />} />
+        <Route exact path="/shopping/catalog" element={<ShoppingCatalog />} />
+        <Route exact path="/shopping/carts" element={<NoteEditor />} />
       </Routes>
     </>
   );
