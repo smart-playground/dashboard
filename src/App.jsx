@@ -18,6 +18,7 @@ import NoteEditor from "./pages/NoteEditor";
 import Notes from "./pages/Notes";
 import Shopping from "./pages/Shopping";
 import ShoppingCatalog from "./pages/ShoppingCatalog";
+import ShoppingCarts from "./pages/ShoppingCarts";
 
 
 
@@ -43,7 +44,7 @@ function App() {
         <Route exact path="/notes/note-editor" element={<NoteEditor />} />
         <Route exact path="/shopping" element={<Shopping />} />
         <Route exact path="/shopping/catalog" element={<ShoppingCatalog />} />
-        <Route exact path="/shopping/carts" element={<NoteEditor />} />
+        <Route exact path="/shopping/carts" element={<ShoppingCarts />} />
       </Routes>
     </>
   );

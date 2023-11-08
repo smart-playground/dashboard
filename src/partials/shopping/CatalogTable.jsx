@@ -1,30 +1,20 @@
-import React from 'react';
-
-import DashboardAvatars from '../dashboard/DashboardAvatars';
-import FilterButton from '../actions/FilterButton';
-import Datepicker from '../actions/Datepicker';
-import {Link} from 'react-router-dom';
 // import { TagsInput } from "react-tag-input-component";
-import { useState, useEffect, useContext } from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
-import {PlusCircleIcon} from '@primer/octicons-react'
-import { getValue } from '@mui/system';
 
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
-import { GenericFilterContext} from "../../contexts/TimeFilterContext";
+import {GenericFilterContext} from "../../contexts/TimeFilterContext";
 import Stack from '@mui/material/Stack';
 import {Snackbar} from "@mui/material";
 import Pagination from '@mui/material/Pagination';
-import CreditCardIcon from '@mui/icons-material/CreditCard';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded';
-// import { data } from 'autoprefixer';
+import CloudUploadRoundedIcon from "@mui/icons-material/CloudUploadRounded";
+import AddShoppingCartRoundedIcon from '@mui/icons-material/AddShoppingCartRounded';
 
 const handleOnSubmit = (e, key) => {
     e.preventDefault();
@@ -284,6 +274,7 @@ function CatalogTable() {
 
     const [openEntryEditDialog, setOpenEntryEditDialog] = useState(false)
     const [elementEditing, setElementEditing] = useState({})
+    const [elementImage, setElementImage] = useState(null)
 
     const [balancesData, setBalancesData] = useState([]);
     const [balancesDataCount, setBalancesDataCount] = useState(0);
@@ -302,7 +293,7 @@ function CatalogTable() {
     };
 
     function getTags(tags) {
-        if (tags == undefined || tags == null)
+        if (tags === undefined || tags == null)
             return []
         return tags
     }
@@ -365,6 +356,30 @@ function CatalogTable() {
             });
     }
 
+    function addElementsToCart(elementsId) {
+        console.log("Going to add element to cart", elementsId)
+
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ catalogIds: elementsId })
+        };
+
+        fetch('/api/shopping/carts/1234/items', requestOptions)
+            .then(async response => {
+                const tag = await response.json()
+                if (!response.ok) {
+                    // get error message from body or default to response status
+                    const error = response.status;
+                    return Promise.reject(error);
+                }
+                console.log(tag);
+            })
+            .catch((err) => {
+                console.error(err.message);
+            });
+    }
+
     function deleteElements(elementsId) {
         console.log("Going to delete element", elementsId)
 
@@ -374,7 +389,7 @@ function CatalogTable() {
             body: JSON.stringify({ ids: elementsId })
         };
 
-        fetch('/shopping/catalog', requestOptions)
+        fetch('/api/shopping/catalog', requestOptions)
             .then(async response => {
                 const tag = await response.json()
                 if (!response.ok) {
@@ -401,7 +416,7 @@ function CatalogTable() {
     const handleSelection = (id) => {
         var a = balancesData.map(e => {
             console.log("AA -> " + e["id"] + " " + id, e)
-            if (e["id"] == id) {
+            if (e["id"] === id) {
                 console.log("Found, before:")
                 console.log(e)
                 e["selected"] = !e["selected"]
@@ -420,6 +435,11 @@ function CatalogTable() {
         deleteElements([element.id])
     }
 
+    const handleAddToCart = (index, element) => {
+        console.error(index, element)
+        addElementsToCart([element.id])
+    }
+
     const handleEdit = (index, element) => {
         console.log("Open screen for editing", index, element)
         const elementClone = {};
@@ -431,6 +451,7 @@ function CatalogTable() {
             elementClone.tags = []
         else
             elementClone.tags = element.tags
+        setElementImage(elementClone.pictureUrl)
         setElementEditing(elementClone);
         setOpenEntryEditDialog(true)
     }
@@ -546,33 +567,73 @@ function CatalogTable() {
     }
 
     function handleEntryUpdate() {
+
+        function internalExec(data, handleSuccess, handleFail) {
+            const requestOptions = {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            };
+
+            fetch('/api/shopping/catalog/' + data.id, requestOptions)
+                .then((response) => response.json())
+                .then((tdata) => {
+                    handleSuccess(tdata)
+                })
+                .catch((err) => {
+                    handleFail(err)
+                });
+        }
+
+        function successHandler(data) {
+            console.log(data);
+            setElementImage(null)
+            setElementEditing({})
+            setOpenEntryEditDialog(false)
+        }
+
+        function failureHandler(err) {
+            console.error(err.message);
+            promptError(err.message)
+        }
+
         console.log("Going to update element to", elementEditing)
 
-        const requestOptions = {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(elementEditing)
-        };
+        console.log("element", elementEditing)
+        if (elementImage === null) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                elementEditing.image = e.target.result
+                elementEditing.pictureUrl = null
 
-        fetch('/shopping/catalog/' + elementEditing.id, requestOptions)
-            .then((response) => response.json())
-            .then((tdata) => {
-                console.log(tdata);
-                // balancesData.map(value => {
-                //     value.pictureUrl = elementEditing.pictureUrl
-                //     value.name = elementEditing.name
-                //     value.description = elementEditing.description
-                //     value.tags = elementEditing.tags
-                //     return value
-                // })
-                setElementEditing({})
-                setOpenEntryEditDialog(false)
-                // setBalancesData(balancesData)
-            })
-            .catch((err) => {
-                console.error(err.message);
-                promptError(err.message)
-            });
+                internalExec(elementEditing, successHandler, failureHandler)
+            };
+
+            console.log(elementImage)
+            reader.readAsDataURL(elementImage);
+        }
+        else {
+            internalExec(elementEditing, successHandler, failureHandler)
+        }
+
+        // const requestOptions = {
+        //     method: 'PATCH',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify(elementEditing)
+        // };
+        //
+        // fetch('/api/shopping/catalog/' + elementEditing.id, requestOptions)
+        //     .then((response) => response.json())
+        //     .then((tdata) => {
+        //         console.log(tdata);
+        //         setElementImage(null)
+        //         setElementEditing({})
+        //         setOpenEntryEditDialog(false)
+        //     })
+        //     .catch((err) => {
+        //         console.error(err.message);
+        //         promptError(err.message)
+        //     });
 
     }
 
@@ -581,25 +642,35 @@ function CatalogTable() {
         setMultiTagsValue([])
     }
 
-    function handleOpenEntryEditDialog() {
+    function handleEntryEditDialogClose() {
         setOpenEntryEditDialog(false)
+        setElementImage(null)
         setElementEditing({})
         // setMultiTagsValue([])
     }
+
+    const handleImageChange = (e) => {
+        console.log("Image loaded")
+        const file = e.target.files[0]
+        elementEditing.pictureUrl = URL.createObjectURL(file)
+        setElementEditing(elementEditing)
+        setElementImage(file)
+    };
+
+    const handleImageIgnore = (e) => {
+        console.log("Ignore Image")
+        elementEditing.pictureUrl = null
+        setElementEditing(elementEditing)
+        setElementImage(null)
+    };
 
     useEffect(() => {
         var url
         var countUrl
 
         var filters = ""
-        if (start != null && start !== "") filters = filters + ',start:' + start
-        if (end != null && end !== "") filters = filters + ',end:' + end
-        if (minCharge != null && minCharge !== "" && InOut !==0) filters = filters + ',minCharge:' + minCharge
-        if (maxCharge != null && maxCharge !== "" && InOut !==0) filters = filters + ',maxCharge:' + maxCharge
-        if (InOut > 0) filters = filters + ',minCharge:0'
-        if (InOut < 0) filters = filters + ',maxCharge:0'
-        if (tags !== "") filters = filters + ',tags:' + tags.join(":")
-        if (text !== "") filters = filters + ',text:' + text
+        if (tags !== "") filters = filters + ',tags:in:' + tags.join(":")
+        if (text !== "") filters = filters + ',name:in:' + text
         console.log("Filter = ", filters)
 
         const paginationParams = 'skip=' + ((page-1) * 20) + '&limit=20';
@@ -613,8 +684,9 @@ function CatalogTable() {
         }
 
         fetch(countUrl, {
-                mode: 'no-cors',
-                Headers: {'Content-Type': 'application/json'},
+                // mode: 'no-cors',
+                Headers: {'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin':'*'},
             })
             .then((response) => response.json())
             .then((data) => {
@@ -633,14 +705,16 @@ function CatalogTable() {
             });
 
         fetch(url, {
-                mode: 'no-cors',
-                Headers: {'Content-Type': 'application/json'}
+                // mode: 'no-cors',
+                Headers: {
+                    'Content-Type': 'application/json',
+                }
             })
             .then((response) => response.json())
             .then((data) => {
-                console.log("Balances:", data);
-                if (data["balances"] !== undefined && data["balances"] != null) {
-                    var manipulatedData = data["balances"].map(e => {e["selected"] = false;return e})
+                console.log("talma catalogItem:", data);
+                if (data["catalogItem"] !== undefined && data["catalogItem"] != null) {
+                    var manipulatedData = data["catalogItem"].map(e => {e["selected"] = false;return e})
                     setBalancesData(manipulatedData);
                 }
                 else {
@@ -666,7 +740,7 @@ function CatalogTable() {
             <Dialog open={openMultiTagDialog} onClose={handleCloseMultiTagDialog}>
                 <DialogTitle>Select Tags</DialogTitle>
                 <DialogContent>
-                    {balancesData.filter(e => e.selected != undefined && e.selected == true).length} Elements are going to be tags.
+                    {balancesData.filter(e => e.selected !== undefined && e.selected === true).length} Elements are going to be tags.
                     <p/>
                     Please select tags below
                     <Autocomplete
@@ -674,7 +748,7 @@ function CatalogTable() {
                         limitTags={10}
                         id="multiple-limit-tags"
                         options={availableTags.map(e => e.name)}
-                        getOptionLabel={(option) => {if (option != undefined && option.name !== undefined) {return option.name} else {return option}} }
+                        getOptionLabel={(option) => {if (option !== undefined && option.name !== undefined) {return option.name} else {return option}} }
                         freeSolo={true}
                         value={multiTagsValue}
                         renderInput={(params) => (
@@ -688,31 +762,54 @@ function CatalogTable() {
                     <Button onClick={handleMultiTagRun}>Tag</Button>
                 </DialogActions>
             </Dialog>
-            <Dialog open={openEntryEditDialog} onClose={handleOpenEntryEditDialog}>
+            <Dialog open={openEntryEditDialog} onClose={handleEntryEditDialogClose}>
                 <DialogTitle>Edit</DialogTitle>
                 <DialogContent>
                     <Stack spacing={2}>
 
                         <TextField id="name" label="Name" variant="standard" defaultValue={elementEditing["name"]} onChange={value => elementEditing["name"] = value.target.value}/>
-                        <TextField label="pictureUrl" variant="standard" defaultValue={elementEditing.pictureUrl} onChange={value => elementEditing.pictureUrl = parseFloat(value.target.value)}/>
                         <TextField id="description" label="Description" variant="standard" defaultValue={elementEditing.description} onChange={value => elementEditing.description = value.target.value}/>
-                        <Autocomplete
-                            multiple
-                            limitTags={10}
-                            // id="multiple-limit-tags"
-                            options={availableTags.map(e => e.name)}
-                            getOptionLabel={(option) => {if (option !== undefined && option.name !== undefined) {return option.name} else {return option}} }
-                            // freeSolo={true}
-                            value={(elementEditing.tags === undefined) ? [] : elementEditing.tags}
-                            renderInput={(params) => (
-                                <TextField variant="standard" size='small' {...params} placeholder="..." />
-                            )}
-                            onChange={(event, value, reason) => elementEditing.tags = value}
+                        {!elementEditing.pictureUrl &&
+                            <button className="btn hover:bg-indigo-600 " onClick={() => document.getElementById('image-upload').click()}>
+                                <CloudUploadRoundedIcon className="w-4 h-4 fill-current opacity-50 shrink-0"/>
+                            </button>
+                        }
+                        <input
+                            type="file"
+                            accept="image/*"
+                            id="image-upload"
+                            style={{ display: 'none' }}
+                            onChange={handleImageChange}
                         />
+                        {elementEditing.pictureUrl &&
+                            <div className="image-container">
+                                <button className="image-close-button"  onClick={(e) => {handleImageIgnore(e);}}>
+                                    X
+                                </button>
+                                <img
+                                    src={elementEditing.pictureUrl}
+                                    alt="Selected"
+                                    width="200"
+                                />
+                            </div>
+                        }
+                        {/*<Autocomplete*/}
+                        {/*    multiple*/}
+                        {/*    limitTags={10}*/}
+                        {/*    // id="multiple-limit-tags"*/}
+                        {/*    options={availableTags.map(e => e.name)}*/}
+                        {/*    getOptionLabel={(option) => {if (option !== undefined && option.name !== undefined) {return option.name} else {return option}} }*/}
+                        {/*    // freeSolo={true}*/}
+                        {/*    value={(elementEditing.tags === undefined) ? [] : elementEditing.tags}*/}
+                        {/*    renderInput={(params) => (*/}
+                        {/*        <TextField variant="standard" size='small' {...params} placeholder="..." />*/}
+                        {/*    )}*/}
+                        {/*    onChange={(event, value, reason) => elementEditing.tags = value}*/}
+                        {/*/>*/}
                     </Stack>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleOpenEntryEditDialog}>Cancel</Button>
+                    <Button onClick={handleEntryEditDialogClose}>Cancel</Button>
                     <Button onClick={handleEntryUpdate}>Update</Button>
                 </DialogActions>
             </Dialog>
@@ -731,20 +828,23 @@ function CatalogTable() {
                                 </div>
                             </th>
                             <th className="p-2">
-                                <div className="font-semibold text-left">Name</div>
+
                             </th>
                             <th className="p-2">
-                                <div className="font-semibold text-center">Picture</div>
+                                <div className="font-semibold text-left">Name</div>
                             </th>
                             <th className="p-2">
                                 <div className="font-semibold text-center">Description</div>
                             </th>
                             <th className="p-2">
-                                <div className="font-semibold text-center">Carts</div>
+                                <div className="font-semibold text-center">Picture</div>
                             </th>
                             <th className="p-2">
-                                <div className="font-semibold text-center">Tags</div>
+                                <div className="font-semibold text-center">Carts</div>
                             </th>
+                            {/*<th className="p-2">*/}
+                            {/*    <div className="font-semibold text-center">Tags</div>*/}
+                            {/*</th>*/}
                             <th className="p-2">
                                 <div className="font-semibold text-center"></div>
                             </th>
@@ -763,7 +863,19 @@ function CatalogTable() {
                                         <input type="checkbox" className="form-checkbox" checked={element.selected} onChange={() => {handleSelection(element.id)}}/>
                                     </td>
                                     <td className="p-2">
+                                        <button
+                                            className="flex justify-center items-center w-9 h-9 rounded-full bg-white  hover:border-slate-300 text-indigo-500 shadow-sm transition duration-150 ml-2"
+                                            key={element["index"]}
+                                            onClick={(e) => {handleAddToCart(element["index"], element);}}>
+                                            <span className="sr-only">Delete</span>
+                                            <AddShoppingCartRoundedIcon/>
+                                        </button>
+                                    </td>
+                                    <td className="p-2">
                                         <div className="text-slate-800">{element.name}</div>
+                                    </td>
+                                    <td className="p-2">
+                                        <div className="text-center text-green-500">{element.description}</div>
                                     </td>
                                     <td className="p-2">
 
@@ -783,10 +895,7 @@ function CatalogTable() {
                                         </div>
                                     </td>
                                     <td className="p-2">
-                                        <div className="text-center text-green-500">{element.description}</div>
-                                    </td>
-                                    <td className="p-2">
-                                        <div className="text-center text-sky-500">{(element.card == undefined) ? "-" : element.card}</div>
+                                        <div className="text-center text-sky-500">{(element.card === undefined) ? "-" : element.card}</div>
                                     </td>
                                     {/*<td className="p-2">*/}
                                     {/*    <div className="text-center text-sky-500">*/}
@@ -795,59 +904,59 @@ function CatalogTable() {
                                     {/*        {element.card === "6602\r" ? <a href="/Tal Martsiano Shkedi">Tal Martsiano Shkedi</a> : ""}*/}
                                     {/*    </div>*/}
                                     {/*</td>*/}
-                                    <td className="p-2">
-                                        <Autocomplete
-                                            multiple
-                                            limitTags={2}
-                                            id="multiple-limit-tags"
-                                            options={availableTags}
-                                            getOptionLabel={(option) => {if (option != undefined && option.name !== undefined) {return option.name} else {return option}} }
-                                            freeSolo={true}
-                                            // defaultValue={}
-                                            // value={getTagNames(element.id)}
-                                            value={getTags(element.tags)}
-                                            renderInput={(params) => (
-                                                <TextField variant="standard" size='small' {...params} placeholder="..." />
-                                            )}
-                                            onChange={(event, value, reason) => {
-                                                console.log('event: ', event);
-                                                console.log('reason: ', reason);
-                                                if (reason == "createOption" && value != null) {
-                                                    console.log("value", value, "actual", element.tags)
-                                                    var last = value.at(-1)
-                                                    var found = availableTags.filter((value) => value.name == last)
-                                                    if (found != null && found != undefined && found.length > 0) {
-                                                        // setElementTags(element.id, found[0].id)
-                                                        setElementTags(element, found.map(e => e.name))
-                                                    }
-                                                    else {
-                                                        console.log("Haven't found, need to add")
-                                                        tagElementWithNonExistingTag(element, last)
-                                                    }
-                                                }
-                                                if (reason == "removeOption") {
-                                                    console.log("tags left", value)
-                                                    setElementTags(element, value)
-                                                }
-                                                if (reason == "selectOption") {
-                                                    var last = value.at(-1)
-                                                    var newtags
-                                                    console.log("value", value, "actual", element.tags)
-                                                    if (element.tags == undefined)
-                                                        newtags = [last.name]
-                                                    else
-                                                        newtags = element.tags
-                                                    newtags.push(last.name)
-                                                    // setElementTags(element.id, last.id)
-                                                    setElementTags(element, newtags)
+                                    {/*<td className="p-2">*/}
+                                    {/*    <Autocomplete*/}
+                                    {/*        multiple*/}
+                                    {/*        limitTags={2}*/}
+                                    {/*        id="multiple-limit-tags"*/}
+                                    {/*        options={availableTags}*/}
+                                    {/*        getOptionLabel={(option) => {if (option != undefined && option.name !== undefined) {return option.name} else {return option}} }*/}
+                                    {/*        freeSolo={true}*/}
+                                    {/*        // defaultValue={}*/}
+                                    {/*        // value={getTagNames(element.id)}*/}
+                                    {/*        value={getTags(element.tags)}*/}
+                                    {/*        renderInput={(params) => (*/}
+                                    {/*            <TextField variant="standard" size='small' {...params} placeholder="..." />*/}
+                                    {/*        )}*/}
+                                    {/*        onChange={(event, value, reason) => {*/}
+                                    {/*            console.log('event: ', event);*/}
+                                    {/*            console.log('reason: ', reason);*/}
+                                    {/*            if (reason === "createOption" && value != null) {*/}
+                                    {/*                console.log("value", value, "actual", element.tags)*/}
+                                    {/*                var last = value.at(-1)*/}
+                                    {/*                var found = availableTags.filter((value) => value.name == last)*/}
+                                    {/*                if (found != null && found.length > 0) {*/}
+                                    {/*                    // setElementTags(element.id, found[0].id)*/}
+                                    {/*                    setElementTags(element, found.map(e => e.name))*/}
+                                    {/*                }*/}
+                                    {/*                else {*/}
+                                    {/*                    console.log("Haven't found, need to add")*/}
+                                    {/*                    tagElementWithNonExistingTag(element, last)*/}
+                                    {/*                }*/}
+                                    {/*            }*/}
+                                    {/*            if (reason === "removeOption") {*/}
+                                    {/*                console.log("tags left", value)*/}
+                                    {/*                setElementTags(element, value)*/}
+                                    {/*            }*/}
+                                    {/*            if (reason === "selectOption") {*/}
+                                    {/*                var last = value.at(-1)*/}
+                                    {/*                var newtags*/}
+                                    {/*                console.log("value", value, "actual", element.tags)*/}
+                                    {/*                if (element.tags === undefined)*/}
+                                    {/*                    newtags = [last.name]*/}
+                                    {/*                else*/}
+                                    {/*                    newtags = element.tags*/}
+                                    {/*                newtags.push(last.name)*/}
+                                    {/*                // setElementTags(element.id, last.id)*/}
+                                    {/*                setElementTags(element, newtags)*/}
 
-                                                }
-                                                if (reason == "clear") {
-                                                }
-                                            }}
-                                            // sx={{ width: '500px' }}
-                                        />
-                                    </td>
+                                    {/*            }*/}
+                                    {/*            if (reason === "clear") {*/}
+                                    {/*            }*/}
+                                    {/*        }}*/}
+                                    {/*        // sx={{ width: '500px' }}*/}
+                                    {/*    />*/}
+                                    {/*</td>*/}
                                     <td className="p-2">
                                         <button
                                             className="flex justify-center items-center w-9 h-9 rounded-full bg-white border border-slate-200 hover:border-slate-300 text-indigo-500 shadow-sm transition duration-150 ml-2"

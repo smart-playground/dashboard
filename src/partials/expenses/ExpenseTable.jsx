@@ -548,10 +548,10 @@ function ExpenseTable() {
     function handleMultiTagRun() {
         setOpenMultiTagDialog(false)
         console.log("Existing tags",availableTags)
-        const itemsToUpdate = balancesData.filter(e => e.selected == true)
+        const itemsToUpdate = balancesData.filter(e => e.selected === true)
         console.log("Going to tags",itemsToUpdate.length ,"elements with the following tags", multiTagsValue)
-        const existingTags = multiTagsValue.filter(e => availableTags.find(a => a.name == e) != null)
-        const nonExistingTags = multiTagsValue.filter(e => availableTags.find(a => a.name == e) == null)
+        const existingTags = multiTagsValue.filter(e => availableTags.find(a => a.name === e) != null)
+        const nonExistingTags = multiTagsValue.filter(e => availableTags.find(a => a.name === e) == null)
         console.log("The following tags need to be created first", nonExistingTags)
 
         if (nonExistingTags.length > 0)
@@ -585,7 +585,7 @@ function ExpenseTable() {
             .then((tdata) => {
                 console.log(tdata);
                 balancesData.map(value => {
-                    if (value.id == elementEditing.id) {
+                    if (value.id === elementEditing.id) {
                         value.charge = elementEditing.charge
                         value["business-name"] = elementEditing["business-name"]
                         value.description = elementEditing.description
@@ -638,19 +638,19 @@ function ExpenseTable() {
         var countUrl
 
         var filters = ""
-        if (start != null && start != "") filters = filters + ',start:' + start
-        if (end != null && end != "") filters = filters + ',end:' + end
-        if (minCharge != null && minCharge != "" && InOut !=0) filters = filters + ',minCharge:' + minCharge
-        if (maxCharge != null && maxCharge != "" && InOut !=0) filters = filters + ',maxCharge:' + maxCharge
+        if (start != null && start !== "") filters = filters + ',start:' + start
+        if (end != null && end !== "") filters = filters + ',end:' + end
+        if (minCharge != null && minCharge !== "" && InOut !==0) filters = filters + ',minCharge:' + minCharge
+        if (maxCharge != null && maxCharge !== "" && InOut !==0) filters = filters + ',maxCharge:' + maxCharge
         if (InOut > 0) filters = filters + ',minCharge:0'
         if (InOut < 0) filters = filters + ',maxCharge:0'
-        if (tags != "") filters = filters + ',tags:' + tags.join(":")
-        if (text != "") filters = filters + ',text:' + text
+        if (tags !== "") filters = filters + ',tags:' + tags.join(":")
+        if (text !== "") filters = filters + ',text:' + text
         console.log("Filter = ", filters)
 
         const paginationParams = 'skip=' + ((page-1) * 20) + '&limit=20';
 
-        if (filters != "") {
+        if (filters !== "") {
             url = '/api/balances?filters=' + filters.substring(1) + '&' + paginationParams
             countUrl = '/api/balances-count?filters=' + filters.substring(1)
         } else {
@@ -663,7 +663,7 @@ function ExpenseTable() {
             .then((response) => response.json())
             .then((data) => {
                 console.log("Count Balances:", data);
-                if (data["count"] != undefined && data["count"] != null) {
+                if (data["count"] !== undefined && data["count"] != null) {
                     var count = data["count"]
                     setBalancesDataCount(count);
                 }
@@ -681,7 +681,7 @@ function ExpenseTable() {
             .then((response) => response.json())
             .then((data) => {
                 console.log("Balances:", data);
-                if (data["balances"] != undefined && data["balances"] != null) {
+                if (data["balances"] !== undefined && data["balances"] != null) {
                     var manipulatedData = data["balances"].map(e => {e["selected"] = false;return e})
                     setBalancesData(manipulatedData);
                 }
@@ -708,7 +708,7 @@ function ExpenseTable() {
             <Dialog open={openMultiTagDialog} onClose={handleCloseMultiTagDialog}>
                 <DialogTitle>Select Tags</DialogTitle>
                 <DialogContent>
-                    {balancesData.filter(e => e.selected != undefined && e.selected == true).length} Elements are going to be tags.
+                    {balancesData.filter(e => e.selected !== undefined && e.selected === true).length} Elements are going to be tags.
                     <p/>
                     Please select tags below
                     <Autocomplete
@@ -716,7 +716,7 @@ function ExpenseTable() {
                         limitTags={10}
                         id="multiple-limit-tags"
                         options={availableTags.map(e => e.name)}
-                        getOptionLabel={(option) => {if (option != undefined && option.name !== undefined) {return option.name} else {return option}} }
+                        getOptionLabel={(option) => {if (option !== undefined && option.name !== undefined) {return option.name} else {return option}} }
                         freeSolo={true}
                         value={multiTagsValue}
                         renderInput={(params) => (
@@ -744,9 +744,9 @@ function ExpenseTable() {
                             limitTags={10}
                             // id="multiple-limit-tags"
                             options={availableTags.map(e => e.name)}
-                            getOptionLabel={(option) => {if (option != undefined && option.name !== undefined) {return option.name} else {return option}} }
+                            getOptionLabel={(option) => {if (option !== undefined && option.name !== undefined) {return option.name} else {return option}} }
                             // freeSolo={true}
-                            value={(elementEditing.tags == undefined) ? [] : elementEditing.tags}
+                            value={(elementEditing.tags === undefined) ? [] : elementEditing.tags}
                             renderInput={(params) => (
                                 <TextField variant="standard" size='small' {...params} placeholder="..." />
                             )}

@@ -13,7 +13,7 @@ function Textpicker() {
     return (
         <div className="relative">
             <TextField
-                label="Business Name"
+                // label="Business Name"
                 className="form-input text-slate-500 hover:text-slate-600 font-medium focus:border-slate-300 w-200"
                 size="small"
                 onChange={handleTextChange}

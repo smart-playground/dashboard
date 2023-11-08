@@ -10,6 +10,28 @@
 @import 'additional-styles/flatpickr.css';
 @import 'additional-styles/theme.css';
 @import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
-
+@import 'carts.css';
 
 @import 'tailwindcss/utilities';
+
+.image-container {
+    position: relative;
+    display: inline-block;
+}
+
+.image-close-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
