@@ -506,7 +506,7 @@ function ExpenseTable() {
     useEffect(() => {
         /////////////////
         fetch('/api/tags/get-all',
-            Headers = {'Content-Type': 'application/json'})
+            {headers: {'Content-Type': 'application/json'}})
             .then((response) => response.json())
             .then((tags) => {
                 console.log("Tags List:", tags);
@@ -659,7 +659,7 @@ function ExpenseTable() {
         }
 
         fetch(countUrl,
-            Headers = {'Content-Type': 'application/json'})
+            {headers: {'Content-Type': 'application/json'}})
             .then((response) => response.json())
             .then((data) => {
                 console.log("Count Balances:", data);
@@ -677,7 +677,7 @@ function ExpenseTable() {
             });
 
         fetch(url,
-            Headers = {'Content-Type': 'application/json'})
+            {headers: {'Content-Type': 'application/json'}})
             .then((response) => response.json())
             .then((data) => {
                 console.log("Balances:", data);

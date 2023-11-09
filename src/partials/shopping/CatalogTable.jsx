@@ -303,7 +303,10 @@ function CatalogTable() {
 
         const requestOptions = {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' ,
+                'Access-Control-Allow-Origin':'*',
+                Authorization: localStorage.getItem('googleToken'),
+            },
             body: JSON.stringify({ id: element.id, tags: tags })
         };
 
@@ -332,7 +335,10 @@ function CatalogTable() {
 
         const requestOptions = {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' ,
+                'Access-Control-Allow-Origin':'*',
+                Authorization: localStorage.getItem('googleToken'),
+            },
             body: JSON.stringify({ ids: elements.map(e => e.id), tags: tagsNames })
         };
 
@@ -361,7 +367,10 @@ function CatalogTable() {
 
         const requestOptions = {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' ,
+                'Access-Control-Allow-Origin':'*',
+                Authorization: localStorage.getItem('googleToken'),
+            },
             body: JSON.stringify({ catalogIds: elementsId })
         };
 
@@ -385,7 +394,10 @@ function CatalogTable() {
 
         const requestOptions = {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' ,
+                'Access-Control-Allow-Origin':'*',
+                Authorization: localStorage.getItem('googleToken'),
+            },
             body: JSON.stringify({ ids: elementsId })
         };
 
@@ -473,7 +485,10 @@ function CatalogTable() {
 
         const requestOptions = {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin':'*',
+                Authorization: localStorage.getItem('googleToken'),
+            },
             body: JSON.stringify({ names: [newTagName] })
         };
 
@@ -502,7 +517,10 @@ function CatalogTable() {
 
         const requestOptions = {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin':'*',
+                Authorization: localStorage.getItem('googleToken'),
+            },
             body: JSON.stringify({ names: newTagsName })
         };
 
@@ -526,7 +544,7 @@ function CatalogTable() {
     useEffect(() => {
         /////////////////
         fetch('/api/tags/get-all',
-            Headers = {'Content-Type': 'application/json'})
+            {headers: {'Content-Type': 'application/json'}})
             .then((response) => response.json())
             .then((tags) => {
                 console.log("Tags List:", tags);
@@ -571,7 +589,10 @@ function CatalogTable() {
         function internalExec(data, handleSuccess, handleFail) {
             const requestOptions = {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin':'*',
+                    Authorization: localStorage.getItem('googleToken'),
+                },
                 body: JSON.stringify(data)
             };
 
@@ -685,8 +706,10 @@ function CatalogTable() {
 
         fetch(countUrl, {
                 // mode: 'no-cors',
-                Headers: {'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin':'*'},
+                headers: {'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin':'*',
+                    Authorization: localStorage.getItem('googleToken'),
+                },
             })
             .then((response) => response.json())
             .then((data) => {
@@ -706,8 +729,11 @@ function CatalogTable() {
 
         fetch(url, {
                 // mode: 'no-cors',
-                Headers: {
+                headers: {
                     'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin':'*',
+                    Authorization: localStorage.getItem('googleToken'),
+
                 }
             })
             .then((response) => response.json())

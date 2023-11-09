@@ -30,7 +30,7 @@ function GeneralExpensePie() {
       url = '/api/expenses-summery'
     }
     fetch(url,
-        Headers = {'Content-Type': 'application/json'})
+        {headers: {'Content-Type': 'application/json'}})
         .then((response) => response.json())
         .then((data) => {
           console.log(data);

@@ -109,7 +109,7 @@ function Dashboard() {
   const [dailyData, setDaily] = useState([]);
 
   useEffect(() => {
-    fetch('/api/balances-count-weekly', Headers = {'Content-Type': 'application/json'})
+    fetch('/api/balances-count-weekly', {headers : {'Content-Type': 'application/json'}})
       .then((response) => response.json())
       .then((data) => {
         console.log("balances-count-weekly Success", data);
@@ -120,7 +120,7 @@ function Dashboard() {
         console.error(err.message);
         setWeekly(mockValuesCountWeekly)
       });
-    fetch('/api/balances-count-daily', Headers = {'Content-Type': 'application/json'})
+    fetch('/api/balances-count-daily', {headers: {'Content-Type': 'application/json'}})
       .then((response) => response.json())
       .then((data) => {
         console.log("balances-count-daily");

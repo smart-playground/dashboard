@@ -71,6 +71,8 @@ function ShoppingCatalog() {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin':'*',
+                        Authorization: localStorage.getItem('googleToken'),
                     },
                     body: JSON.stringify(elementEditing),
                 })

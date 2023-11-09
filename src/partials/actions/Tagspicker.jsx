@@ -53,7 +53,7 @@ function Tagspicker() {
     useEffect(() => {
         /////////////////
         fetch('/api/tags/get-all',
-            Headers = {'Content-Type': 'application/json'})
+            {headers: {'Content-Type': 'application/json'}})
             .then((response) => response.json())
             .then((tags) => {
                 console.log(tags);

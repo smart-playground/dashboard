@@ -30,7 +30,10 @@ function CatalogMiniTable(props) {
 
         const requestOptions = {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' ,
+                'Access-Control-Allow-Origin':'*',
+                Authorization: localStorage.getItem('googleToken'),
+            },
             body: JSON.stringify({ items: [{id: elementsId, amount: 1, comment: ""}] })
         };
         console.log("Sending", requestOptions)
@@ -83,8 +86,10 @@ function CatalogMiniTable(props) {
 
         fetch(countUrl, {
                 // mode: 'no-cors',
-                Headers: {'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin':'*'},
+                headers: {'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin':'*',
+                    Authorization: localStorage.getItem('googleToken'),
+                },
             })
             .then((response) => response.json())
             .then((data) => {
@@ -104,8 +109,11 @@ function CatalogMiniTable(props) {
 
         fetch(url, {
                 // mode: 'no-cors',
-                Headers: {
+                headers: {
                     'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin':'*',
+                    Authorization: localStorage.getItem('googleToken'),
+
                 }
             })
             .then((response) => response.json())

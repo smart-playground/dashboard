@@ -74,6 +74,8 @@ function ShoppingCarts() {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin':'*',
+                Authorization: localStorage.getItem('googleToken'),
             },
             body: JSON.stringify({}),
         })
@@ -109,8 +111,12 @@ function ShoppingCarts() {
 
         fetch(countUrl, {
             // mode: 'no-cors',
-            Headers: {'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin':'*'},
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin':'*',
+                'Authorization': localStorage.getItem('googleToken'),
+                't': 't'
+            },
         })
             .then((response) => response.json())
             .then((data) => {
@@ -130,8 +136,11 @@ function ShoppingCarts() {
 
         fetch(url, {
             // mode: 'no-cors',
-            Headers: {
+            headers: {
                 'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin':'*',
+                Authorization: localStorage.getItem('googleToken'),
+
             }
         })
             .then((response) => response.json())

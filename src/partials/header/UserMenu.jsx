@@ -16,9 +16,16 @@ function UserMenu() {
   const trigger = useRef(null);
   const dropdown = useRef(null);
 
-  const [userImageUrl, setUserImageUrl] = useState(NO_USER)
-  const [userFirstName, setUserFirstName] = useState("")
-  const [userEmail, setUserEmail] = useState("")
+  let image = localStorage.getItem('googleImageUrl')
+  if (image === null) {
+    image = NO_USER
+  }
+
+  // console.log("TOKEN", localStorage.getItem('googleToken'))
+
+  const [userImageUrl, setUserImageUrl] = useState(image)
+  const [userFirstName, setUserFirstName] = useState(localStorage.getItem('googleName'))
+  const [userEmail, setUserEmail] = useState(localStorage.getItem('googleEmail'))
 
   // close on click outside
   useEffect(() => {
@@ -44,10 +51,13 @@ function UserMenu() {
     // Handle the Google authentication response here.
     console.log("Win", response)
 
-    fetch('/api/hello', {
+    localStorage.setItem('googleToken', response.credential)
+
+      fetch('/api/hello', {
           headers : {
             'Content-Type': 'application/json',
-            Authorization: response.credential,
+            'Access-Control-Allow-Origin':'*',
+            Authorization: localStorage.getItem('googleToken'),
           }
         })
       .then((response) => response.json())
@@ -56,6 +66,9 @@ function UserMenu() {
         setUserImageUrl(data.picture)
         setUserFirstName(data.givenName)
         setUserEmail(data.email)
+        localStorage.setItem('googleEmail', data.email);
+        localStorage.setItem('googleName', data.givenName);
+        localStorage.setItem('googleImageUrl', data.picture);
         console.log(data);
       })
       .catch((err) => {
@@ -66,6 +79,10 @@ function UserMenu() {
 
 
   function handleLogOut() {
+    localStorage.setItem('googleEmail', "");
+    localStorage.setItem('googleName', "");
+    localStorage.setItem('googleImageUrl', NO_USER);
+    localStorage.setItem('googleToken', "")
     setUserImageUrl(NO_USER)
     setUserEmail("")
     setUserFirstName("")
