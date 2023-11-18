@@ -84,4 +84,4 @@ docker build -f Dockerfile.prod -t web-ui:prod .
 
 k config use-context docker-desktop
 
-kubectl port-forward services/frontend 8080:80
+kubectl port-forward services/frontend 8088:80

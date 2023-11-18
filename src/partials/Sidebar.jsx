@@ -7,6 +7,8 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
   const location = useLocation();
   const { pathname } = location;
 
+  const production = true
+
   const trigger = useRef(null);
   const sidebar = useRef(null);
 
@@ -115,7 +117,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
             </h3>
             <ul className="mt-3">
               {/* Dashboard */}
-              <SidebarLinkGroup activecondition={pathname === '/' || pathname.includes('dashboard')}>
+              {!production && <SidebarLinkGroup activecondition={pathname === '/' || pathname.includes('dashboard')}>
                 {(handleClick, open) => {
                   return (
                     <React.Fragment>
@@ -202,8 +204,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                   );
                 }}
               </SidebarLinkGroup>
+              }
               {/* Expenses */}
-              <SidebarLinkGroup activecondition={pathname.includes('expenses')}>
+              {!production && <SidebarLinkGroup activecondition={pathname.includes('expenses')}>
                 {(handleClick, open) => {
                   return (
                     <React.Fragment>
@@ -278,9 +281,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                     </React.Fragment>
                   );
                 }}
-              </SidebarLinkGroup>
-              {/* Expenses */}
-              <SidebarLinkGroup activecondition={pathname.includes('notes')}>
+              </SidebarLinkGroup>}
+              {/* Notes */}
+              {!production && <SidebarLinkGroup activecondition={pathname.includes('notes')}>
                 {(handleClick, open) => {
                   return (
                       <React.Fragment>
@@ -355,7 +358,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                       </React.Fragment>
                   );
                 }}
-              </SidebarLinkGroup>
+              </SidebarLinkGroup>}
               <SidebarLinkGroup activecondition={pathname.includes('shopping')}>
                 {(handleClick, open) => {
                   return (
@@ -1023,13 +1026,13 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                     </div>
                     {/* Badge */}
                     <div className="flex flex-shrink-0 ml-2">
-                      <span className="inline-flex items-center justify-center h-5 text-xs font-medium text-white bg-indigo-500 px-2 rounded">4</span>
+                      <span className="inline-flex items-center justify-center h-5 text-xs font-medium text-white bg-indigo-500 px-2 rounded">0</span>
                     </div>
                   </div>
                 </NavLink>
               </li>
               {/* Inbox */}
-              <li className={`px-3 py-2 rounded-sm mb-0.5 last:mb-0 ${pathname.includes('inbox') && 'bg-slate-900'}`}>
+              {!production && <li className={`px-3 py-2 rounded-sm mb-0.5 last:mb-0 ${pathname.includes('inbox') && 'bg-slate-900'}`}>
                 <NavLink
                   end
                   to="/"
@@ -1051,9 +1054,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                     <span className="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Inbox</span>
                   </div>
                 </NavLink>
-              </li>
+              </li>}
               {/* Calendar */}
-              <li className={`px-3 py-2 rounded-sm mb-0.5 last:mb-0 ${pathname.includes('calendar') && 'bg-slate-900'}`}>
+              {!production && <li className={`px-3 py-2 rounded-sm mb-0.5 last:mb-0 ${pathname.includes('calendar') && 'bg-slate-900'}`}>
                 <NavLink
                   end
                   to="/"
@@ -1074,9 +1077,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                     </span>
                   </div>
                 </NavLink>
-              </li>
+              </li>}
               {/* Campaigns */}
-              <li className={`px-3 py-2 rounded-sm mb-0.5 last:mb-0 ${pathname.includes('campaigns') && 'bg-slate-900'}`}>
+              {!production && <li className={`px-3 py-2 rounded-sm mb-0.5 last:mb-0 ${pathname.includes('campaigns') && 'bg-slate-900'}`}>
                 <NavLink
                   end
                   to="/"
@@ -1100,9 +1103,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                     </span>
                   </div>
                 </NavLink>
-              </li>
+              </li>}
               {/* Settings */}
-              <SidebarLinkGroup activecondition={pathname.includes('settings')}>
+              {!production && <SidebarLinkGroup activecondition={pathname.includes('settings')}>
                 {(handleClick, open) => {
                   return (
                     <React.Fragment>
@@ -1221,9 +1224,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                     </React.Fragment>
                   );
                 }}
-              </SidebarLinkGroup>
+              </SidebarLinkGroup>}
               {/* Utility */}
-              <SidebarLinkGroup activecondition={pathname.includes('utility')}>
+              {!production && <SidebarLinkGroup activecondition={pathname.includes('utility')}>
                 {(handleClick, open) => {
                   return (
                     <React.Fragment>
@@ -1350,7 +1353,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                     </React.Fragment>
                   );
                 }}
-              </SidebarLinkGroup>
+              </SidebarLinkGroup>}
             </ul>
           </div>
           {/* More group */}
@@ -1409,13 +1412,13 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                               </span>
                             </NavLink>
                           </li>
-                          <li className="mb-1 last:mb-0">
-                            <NavLink end to="/" className="block text-slate-400 hover:text-slate-200 transition duration-150 truncate">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                Reset Password
-                              </span>
-                            </NavLink>
-                          </li>
+                          {/*<li className="mb-1 last:mb-0">*/}
+                          {/*  <NavLink end to="/" className="block text-slate-400 hover:text-slate-200 transition duration-150 truncate">*/}
+                          {/*    <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">*/}
+                          {/*      Reset Password*/}
+                          {/*    </span>*/}
+                          {/*  </NavLink>*/}
+                          {/*</li>*/}
                         </ul>
                       </div>
                     </React.Fragment>
@@ -1423,7 +1426,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                 }}
               </SidebarLinkGroup>
               {/* Onboarding */}
-              <SidebarLinkGroup>
+              {!production && <SidebarLinkGroup>
                 {(handleClick, open) => {
                   return (
                     <React.Fragment>
@@ -1494,9 +1497,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                     </React.Fragment>
                   );
                 }}
-              </SidebarLinkGroup>
+              </SidebarLinkGroup>}
               {/* Components */}
-              <SidebarLinkGroup activecondition={pathname.includes('component')}>
+              {!production && <SidebarLinkGroup activecondition={pathname.includes('component')}>
                 {(handleClick, open) => {
                   return (
                     <React.Fragment>
@@ -1688,7 +1691,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                     </React.Fragment>
                   );
                 }}
-              </SidebarLinkGroup>
+              </SidebarLinkGroup>}
             </ul>
           </div>
         </div>

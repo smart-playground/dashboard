@@ -19,6 +19,7 @@ import Notes from "./pages/Notes";
 import Shopping from "./pages/Shopping";
 import ShoppingCatalog from "./pages/ShoppingCatalog";
 import ShoppingCarts from "./pages/ShoppingCarts";
+import Landing from "./pages/Landing";
 
 
 
@@ -35,7 +36,7 @@ function App() {
   return (
     <>
       <Routes>
-        <Route exact path="/" element={<Dashboard />} />
+        <Route exact path="/" element={<Landing />} />
         <Route exact path="/dashboard" element={<Dashboard />} />
         <Route exact path="/dashboard/analytics" element={<Analytics />} />
         <Route exact path="/expenses" element={<Expenses />} />

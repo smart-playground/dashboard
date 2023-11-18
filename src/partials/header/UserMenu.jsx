@@ -9,6 +9,8 @@ import CloudUploadRoundedIcon from "@mui/icons-material/CloudUploadRounded";
 
 function UserMenu() {
 
+  console.log("Loading User Menu and data")
+
   const NO_USER = "https://icon2.cleanpng.com/20180516/vgq/kisspng-computer-icons-google-account-icon-design-login-5afc02da4d77a2.5100382215264652423173.jpg"
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -47,38 +49,41 @@ function UserMenu() {
     return () => document.removeEventListener('keydown', keyHandler);
   });
 
-  const responseGoogle = (response) => {
-    // Handle the Google authentication response here.
-    console.log("Win", response)
-
-    localStorage.setItem('googleToken', response.credential)
-
-      fetch('/api/hello', {
-          headers : {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin':'*',
-            Authorization: localStorage.getItem('googleToken'),
+  function fetchUserData() {
+    fetch('/api/hello', {
+      headers : {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin':'*',
+        Authorization: localStorage.getItem('googleToken'),
+      }
+    })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Great Win!");
+          if (data.email === null) {
+            console.warn("Token is not valid: ",localStorage.getItem('googleToken'))
+            handleUserDataReset()
+            window.location.href = '/';
           }
+          else {
+            setUserImageUrl(data.picture)
+            setUserFirstName(data.name)
+            setUserEmail(data.email)
+            localStorage.setItem('googleEmail', data.email);
+            localStorage.setItem('googleName', data.name);
+            localStorage.setItem('googleImageUrl', data.picture);
+          }
+          console.log(data);
         })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Great Win!");
-        setUserImageUrl(data.picture)
-        setUserFirstName(data.givenName)
-        setUserEmail(data.email)
-        localStorage.setItem('googleEmail', data.email);
-        localStorage.setItem('googleName', data.givenName);
-        localStorage.setItem('googleImageUrl', data.picture);
-        console.log(data);
-      })
-      .catch((err) => {
-        console.error("Great Fail");
-        console.error(err.message);
-      });
+        .catch((err) => {
+          console.error("Failed to ping server with token", localStorage.getItem('googleToken'));
+          console.error(err.message);
+          handleUserDataReset()
+          window.location.href = '/';
+        });
   }
 
-
-  function handleLogOut() {
+  function handleUserDataReset() {
     localStorage.setItem('googleEmail', "");
     localStorage.setItem('googleName', "");
     localStorage.setItem('googleImageUrl', NO_USER);
@@ -88,6 +93,14 @@ function UserMenu() {
     setUserFirstName("")
   }
 
+  if (localStorage.getItem('googleToken') !== null && localStorage.getItem('googleToken') !== "") {
+    console.log("Token exist, validating token")
+    fetchUserData()
+  }
+  else {
+    console.log("Token wasn't found, skipping auto-login")
+  }
+
   return (
     <div className="relative inline-flex">
       <button
@@ -95,7 +108,6 @@ function UserMenu() {
         className="inline-flex justify-center items-center group"
         aria-haspopup="true"
         onClick={() => {
-          handleLogOut()
           setDropdownOpen(!dropdownOpen)
         }}
         aria-expanded={dropdownOpen}
@@ -126,37 +138,28 @@ function UserMenu() {
         >
           <div className="pt-0.5 pb-2 px-3 mb-1 border-b border-slate-200 flex justify-between">
             <div >
-              <div className="font-medium text-slate-800">Acme Inc.</div>
-              <div className="text-xs text-slate-500 italic">Administrator</div>
+              <div className="font-medium text-slate-800">{userFirstName}</div>
+              <div className="text-xs text-slate-500 italic">User</div>
             </div>
-            <GoogleLogin
-                clientId="604595836281-re6t95b2ipci2749o5blhpl2de38mnj2.apps.googleusercontent.com"
-                // buttonText="Login with Google"
-                onSuccess={responseGoogle}
-                onFailure={responseGoogle}
-                cookiePolicy={'single_host_origin'}
-                // style={{display: 'none'}}
-                theme={"outline"}
-                shape={"circle"}
-                type={"icon"}
-                // useOneTap={true}
-            />
           </div>
           <ul>
+            {/*{userEmail && <li>*/}
+            {/*  <Link*/}
+            {/*    className="font-medium text-sm text-indigo-500 hover:text-indigo-600 flex items-center py-1 px-3"*/}
+            {/*    to="/"*/}
+            {/*    onClick={() => setDropdownOpen(!dropdownOpen)}*/}
+            {/*  >*/}
+            {/*    Settings*/}
+            {/*  </Link>*/}
+            {/*</li>}*/}
             {userEmail && <li>
               <Link
                 className="font-medium text-sm text-indigo-500 hover:text-indigo-600 flex items-center py-1 px-3"
                 to="/"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-              >
-                Settings
-              </Link>
-            </li>}
-            {userEmail && <li>
-              <Link
-                className="font-medium text-sm text-indigo-500 hover:text-indigo-600 flex items-center py-1 px-3"
-                to="/"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
+                onClick={() => {
+                  handleUserDataReset()
+                  setDropdownOpen(!dropdownOpen)
+                }}
               >
                 Sign Out
               </Link>

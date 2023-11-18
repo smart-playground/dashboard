@@ -60,7 +60,7 @@ function Notes() {
                             <div className="sm:flex sm:justify-between sm:items-center mb-3 ">
                                 <div className="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
                                     <Tagspicker/>
-                                    <Textpicker/>
+                                    <Textpicker  data={{}}/>
                                 </div>
                             </div>
 

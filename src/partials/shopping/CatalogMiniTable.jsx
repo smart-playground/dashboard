@@ -6,35 +6,41 @@ import {Snackbar} from "@mui/material";
 import Pagination from '@mui/material/Pagination';
 import AddShoppingCartRoundedIcon from '@mui/icons-material/AddShoppingCartRounded';
 import Textpicker from "../actions/Textpicker";
+import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
+import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 
-function CatalogMiniTable(props) {
+function CatalogMiniTable({cartData, onItemAdded}) {
 
-    const cartId = props.cartData.id;
+    console.log("In CatalogMiniTable", cartData, onItemAdded)
+    const cartId = cartData.id;
+    const {setItemsAdded} = onItemAdded;
 
     const [openSnackBar, setOpenSnackBar] = useState(false);
     const [snackBarMessage, setSnackBarMessage] = useState("")
 
-    const [balancesData, setBalancesData] = useState([]);
+    const [itemsData, setItemsData] = useState([]);
     const [balancesDataCount, setBalancesDataCount] = useState(0);
 
     const genericFilterContext = useContext(GenericFilterContext);
-    const {start, end, minCharge, maxCharge, InOut, tags, text } = genericFilterContext;
+    const {tags, text  } = genericFilterContext;
+    const [refreshTable, setRefreshTable] = useState(true)
 
     const [page, setPage] = React.useState(1);
     const handlePageChange = (event, value) => {
         setPage(value);
     };
 
-    function addElementsToCart(elementsId) {
-        console.log("Going to add element to cart", elementsId)
+    function addElementsToCart(element) {
+        console.log("Going to add element to cart", element.id)
 
+        const itemToAdd = {id: element.id, amount: 1, comment: ""}
         const requestOptions = {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' ,
                 'Access-Control-Allow-Origin':'*',
                 Authorization: localStorage.getItem('googleToken'),
             },
-            body: JSON.stringify({ items: [{id: elementsId, amount: 1, comment: ""}] })
+            body: JSON.stringify({ items: [itemToAdd] })
         };
         console.log("Sending", requestOptions)
 
@@ -47,6 +53,9 @@ function CatalogMiniTable(props) {
                     return Promise.reject(error);
                 }
                 console.log(tag);
+                setRefreshTable(!refreshTable)
+
+                onItemAdded(itemToAdd, element)
             })
             .catch((err) => {
                 console.error(err.message);
@@ -55,8 +64,8 @@ function CatalogMiniTable(props) {
 
 
     const handleAddToCart = (index, element) => {
-        console.error(index, element)
-        addElementsToCart(element.id)
+        console.log("adding element to cart", index, element.name)
+        addElementsToCart(element)
     }
 
     function promptError(message) {
@@ -70,18 +79,21 @@ function CatalogMiniTable(props) {
         var countUrl
 
         var filters = ""
-        if (tags !== "") filters = filters + ',tags:in:' + tags.join(":")
+        console.log(tags)
+        if (tags.length !== 0) filters = filters + ',tags:in:' + tags.join(":")
         if (text !== "") filters = filters + ',name:in:' + text
         console.log("Filter = ", filters)
 
         const paginationParams = 'skip=' + ((page-1) * 20) + '&limit=20';
 
+        // const host = 'http://localhost:8088'
+        const host = ''
         if (filters !== "") {
-            url = 'http://localhost:8080' + '/api/shopping/catalog?filters=' + filters.substring(1) + '&' + paginationParams
-            countUrl = 'http://localhost:8080' + '/api/shopping/catalog-count?filters=' + filters.substring(1)
+            url = host + '/api/shopping/catalog?filters=' + filters.substring(1) + '&' + paginationParams
+            countUrl = host + '/api/shopping/catalog/count?filters=' + filters.substring(1)
         } else {
-            url = 'http://localhost:8080' + '/api/shopping/catalog' + '?' + paginationParams
-            countUrl = 'http://localhost:8080' + '/api/shopping/catalog-count'
+            url = host + '/api/shopping/catalog' + '?' + paginationParams
+            countUrl = host + '/api/shopping/catalog/count'
         }
 
         fetch(countUrl, {
@@ -121,17 +133,45 @@ function CatalogMiniTable(props) {
                 console.log("talma catalogItem:", data);
                 if (data["catalogItem"] !== undefined && data["catalogItem"] != null) {
                     var manipulatedData = data["catalogItem"].map(e => {e["selected"] = false;return e})
-                    setBalancesData(manipulatedData);
+                    setItemsData(manipulatedData);
                 }
                 else {
-                    setBalancesData([]);
+                    setItemsData([]);
                 }
             })
             .catch((err) => {
                 console.error(err.message);
-                setBalancesData([])
+                setItemsData([])
             });
-    }, [start, end, minCharge, maxCharge, InOut, tags, text, page]);
+    }, [tags, text, page, refreshTable]);
+
+    function handleNoneExistingItemToCart(text) {
+        var element = {
+            name: text,
+            pictureUrl: "",
+            description: ""
+        }
+        fetch('/api/shopping/catalog', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin':'*',
+                Authorization: localStorage.getItem('googleToken'),
+            },
+            body: JSON.stringify(element),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                element.id = data.id
+                console.log("New items was added", data);
+                addElementsToCart(element)
+                // Handle the response from the backend here
+            })
+            .catch((error) => {
+                console.error(error);
+                // Handle errors here
+            });
+    }
 
     return (
         <div className="col-span-full xl:col-span-8 bg-white shadow-lg rounded-sm border border-slate-200">
@@ -145,11 +185,8 @@ function CatalogMiniTable(props) {
             </div>
 
             <div className="p-3">
-
-                <GenericFilterContextProvider>
-
                     <div className="sm:flex sm:justify-center sm:items-center mb-3 ">
-                            <Textpicker/>
+                        <Textpicker data={{label: "Search Item"}}/>
                     </div>
 
                     {/* Table */}
@@ -174,15 +211,15 @@ function CatalogMiniTable(props) {
                             </thead>
                             {/* Table body */}
                             <tbody className="text-sm font-medium divide-y divide-slate-100">
-                            {balancesData.map(element => {
+                            {itemsData.map(element => {
                                 {/* Row */}
                                 return(
                                     <tr key={element.id}>
                                         <td className="p-2">
                                             <button
                                                 className="flex justify-center items-center w-9 h-9 rounded-full bg-white  hover:border-slate-300 text-indigo-500 shadow-sm transition duration-150 ml-2"
-                                                key={element["index"]}
-                                                onClick={(e) => {handleAddToCart(element["index"], element);}}>
+                                                key={element["id"]}
+                                                onClick={(e) => {handleAddToCart(element["id"], element);}}>
                                                 <span className="sr-only">Delete</span>
                                                 <AddShoppingCartRoundedIcon/>
                                             </button>
@@ -203,11 +240,13 @@ function CatalogMiniTable(props) {
                                                     height: '80px'
                                                 }}
                                             >
+                                                {element.pictureUrl !== undefined && element.pictureUrl !== "" &&
                                                 <img
                                                     style={{ height: 'auto', maxWidth: '100px' }}
                                                     alt="my image"
                                                     src={element.pictureUrl}
-                                                ></img>
+                                                ></img>}
+                                                {element.pictureUrl === "" && <ImageNotSupportedIcon/>}
                                             </div>
                                         </td>
                                     </tr>
@@ -215,12 +254,22 @@ function CatalogMiniTable(props) {
                             })}
                             </tbody>
                         </table>
+                        {itemsData.length === 0 && <div className="sm:flex sm:justify-center sm:items-center mb-3 ">
+                                <div className="p-3">
+                                    Nothing Found
+                                </div>
+                                <div className="p-3">
+                                    <button className="btn bg-indigo-500 hover:bg-indigo-600 text-white"
+                                            onClick={(e) => {handleNoneExistingItemToCart(text);}}>
+                                        Add Item
+                                    </button>
+                                </div>
+                        </div>}
                         <Stack spacing={2} className="px-5 py-8 sm:justify-center sm:items-center" >
                             <Pagination count={Math.round(balancesDataCount / 20)} variant="outlined" color="primary"
                                         showFirstButton showLastButton page={page} onChange={handlePageChange} />
                         </Stack>
                     </div>
-                </GenericFilterContextProvider>
             </div>
         </div>
     );

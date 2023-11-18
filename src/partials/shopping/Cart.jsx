@@ -4,409 +4,516 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import RemoveRoundedIcon from '@mui/icons-material/RemoveRounded';
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
+import ShareIcon from '@mui/icons-material/Share';
+import AddIcon from '@mui/icons-material/Add';
 import TextField from "@mui/material/TextField";
-import {FormControl} from "@mui/material";
 import ModeEditOutlineRoundedIcon from '@mui/icons-material/ModeEditOutlineRounded';
-import Autocomplete from "@mui/material/Autocomplete";
-import Box from "@mui/material/Box";
-import PlaylistAddRoundedIcon from '@mui/icons-material/PlaylistAddRounded';
 import CatalogMiniTable from "./CatalogMiniTable";
 import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
+import {GenericFilterContextProvider} from "../../contexts/TimeFilterContext";
+import {element} from "prop-types";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
 
 function Cart(props) {
 
-  const cartData = props.cartData;
+    const cartData = props.cartData;
 
     console.log("In cart", cartData)
-  const [itemsData, setItemsData] = useState([])
-  const [itemsIds, setItemsIds] = useState([])
-  const [itemsAmount, setItemsAmount] = useState(0)
+    const [itemsData, setItemsData] = useState(cartData.items)
+    const [usersData, setUsersData] = useState(cartData.users)
 
-    const [titleEditMode, setTitleEditMode] = useState(false)
-    const [descriptionEditMode, setDescriptionEditMode] = useState(false)
+    const [itemsAmount, setItemsAmount] = useState(0)
+
+    const [openAddUser, setAddUserClose] = React.useState(false);
+    const [userToAdd, setUserToAdd] = React.useState(null);
+
+
     const [contentEditMode, setContentEditMode] = useState(false)
 
-  function deleteElements(elementsId) {
-    console.log("Going to delete element", elementsId)
-
-    const requestOptions = {
-      method: 'DELETE',
-      headers: {
-          'Content-Type': 'application/json' ,
-          'Access-Control-Allow-Origin':'*',
-          Authorization: localStorage.getItem('googleToken'),
-      },
-      body: JSON.stringify({ ids: elementsId })
+    const handleItemAdded = (itemPortion, itemInfo) => {
+        console.log(itemPortion, itemInfo);
+        const element = {
+            id: itemPortion.id,
+            amount: itemPortion.amount,
+            name: itemInfo.name,
+            pictureUrl: itemInfo.pictureUrl,
+            comment: itemPortion.comment
+        };
+        setItemsData(itemsData => [...itemsData, element])
     };
 
-    fetch('/api/shopping/cart/' + cartData.id, requestOptions)
-        .then(async response => {
-          const tag = await response.json()
-          if (!response.ok) {
-            // get error message from body or default to response status
-            const error = response.status;
-            return Promise.reject(error);
-          }
-          console.log(tag);
-        })
-        .catch((err) => {
-          console.error(err.message);
-        });
-  }
+    const handleDeleteElement = (element) => {
+        console.log("Deleting element from the cart", element)
 
-  const handleDelete = (index, element) => {
-    console.error(index, element)
-    // setBalancesData(balancesData.filter((v, i) => v.id !== element.id));
-    deleteElements([element.id])
-  }
+        const requestOptions = {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                Authorization: localStorage.getItem('googleToken'),
+            },
+            body: JSON.stringify({cartId: cartData.id, ids: [element.id]})
+        };
 
-  const handleMarkDone = () => {
+        fetch('/api/shopping/carts/' + cartData.id + '/items', requestOptions)
+            .then(async response => {
+                const tag = await response.json()
+                if (!response.ok) {
+                    // get error message from body or default to response status
+                    const error = response.status;
+                    return Promise.reject(error);
+                }
+                console.log(tag);
+                const filteredItems = itemsData.filter(v => v.id !== element.id)
+                setItemsData(filteredItems)
+            })
+            .catch((err) => {
+                console.error(err.message);
+            });
+    }
 
-  }
+    const handleMarkDone = () => {
 
-  const handleMarkUndone = () => {
+    }
 
-  }
+    const handleMarkUndone = () => {
 
-  const handleIncrease = () => {
+    }
 
-  }
+    function changeItemAmountOrCommentInCart(element, amount, comment) {
+        const requestOptions = {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                Authorization: localStorage.getItem('googleToken'),
+            },
+            body: JSON.stringify({items: [{id: element.id, amount: amount, comment: comment}]})
+        };
 
-  const handleDecrease = () => {
+        fetch('/api/shopping/carts/' + cartData.id + '/items', requestOptions)
+            .then(async response => {
+                const tag = await response.json()
+                if (!response.ok) {
+                    // get error message from body or default to response status
+                    const error = response.status;
+                    return Promise.reject(error);
+                }
+                console.log(tag);
+                const convertedData = itemsData.map(v => {
+                    if (v.id === element.id) {
+                        v.amount = amount
+                        return v
+                    }
+                    else {
+                        return v
+                    }
+                })
+                setItemsData(convertedData)
+            })
+            .catch((err) => {
+                console.error(err.message);
+            });
+    }
 
-  }
+    const handleComment = (element, comment) => {
+        console.log("Changing comment", element, comment)
+        changeItemAmountOrCommentInCart(element, element.amount, comment)
+    }
 
-  function updateCart() {
-      console.log("Going to update with these values", cartData)
+    const handleIncrease = (element) => {
+        console.log("Increase element in cart", element)
+        changeItemAmountOrCommentInCart(element, element.amount+1, element.comment)
+    }
 
-      const requestOptions = {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin':'*',
-              Authorization: localStorage.getItem('googleToken'),
+    const handleDecrease = (element) => {
+        if (element.amount === 1) {
+            console.log("Minimal value")
+        } else {
+            console.log("Increase element in cart", element)
+            changeItemAmountOrCommentInCart(element, element.amount-1, element.comment)
+        }
+    }
 
-          },
-          body: JSON.stringify(cartData)
-      };
+    function updateCartMetadata() {
+        console.log("Going to update with these values", cartData)
+        let usersIds = usersData.map(u => u.userIdentifier);
+        if (userToAdd !== null) {
+            usersIds = [...usersIds, userToAdd]
+        }
+        console.log("users",  usersIds)
 
-      fetch("/api/shopping/carts/" + cartData.id, requestOptions)
-          .then((response) => response.json())
-          .then((data) => {
-              console.log("catalogItem:", data);
-          })
-          .catch((err) => {
-              console.error(err.message);
-              setItemsData([])
-          });
-  }
-    function handleTitleChange(e)  {
-        setTitleEditMode(false);
-        updateCart()
-  }
+        const requestBody = {
+            title: cartData.title,
+            description: cartData.description,
+            users: usersIds
+        }
 
-  function handleDescriptionChange(e) {
-      setDescriptionEditMode(false);
-      updateCart()
-  }
+        const requestOptions = {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                Authorization: localStorage.getItem('googleToken'),
 
-  function handleAddingItemsToCart() {
+            },
+            body: JSON.stringify(requestBody)
+        };
 
-  }
+        fetch("/api/shopping/carts/" + cartData.id, requestOptions)
+            .then((response) => response.json())
+            .then((data) => {
+                console.log("catalogItem:", data);
+            })
+            .catch((err) => {
+                console.error(err.message);
+                setItemsData([])
+            });
+    }
 
-    useEffect(() => {
-        /////////////////
-        // fetch(
-        //     '/api/shopping/catalog/image',
-        //     {
-        //             Headers: {
-        //                 'Content-Type': 'application/json',
-        //                 'Access-Control-Allow-Origin': '*'
-        //             },
-        //         }
-        //     )
-        //     .then((response) => response.json())
-        //     .then((tags) => {
-        //         console.log("Tags List:", tags);
-        //         setAvailableTags(tags["tags"]);
-        //     })
-        //     .catch((err) => {
-        //         console.error(err.message);
-        //         setAvailableTags(mockValues["tags"])
-        //     });
-    }, [itemsIds]);
+    function shareCart() {
+        console.log("Sharing the cart")
+    }
 
-  useEffect(() => {
-    let url;
-    let countUrl;
+    const handleAddUserClose = () => {
+        setAddUserClose(false);
+        setUserToAdd(null)
+    };
 
-    url = 'http://localhost:8080' + '/api/shopping/carts/' + cartData.id
-    countUrl = 'http://localhost:8080' + '/api/shopping/carts/' + cartData.id + '/count'
+    const handleAddUserCloseAndSubmit = () => {
+        setAddUserClose(false);
+        console.log("Adding user", userToAdd)
+        const newUser = {userIdentifier: userToAdd}
+        updateCartMetadata()
+        setUsersData(usersData => [...usersData, newUser])
+        setUserToAdd(null)
+    };
 
-    fetch(countUrl, {
-      // mode: 'no-cors',
-      headers: {'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin':'*',
-          Authorization: localStorage.getItem('googleToken'),
-      },
-    })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Count Balances:", data);
-          if (data["count"] !== undefined && data["count"] != null) {
-            var count = data["count"]
-            setItemsAmount(count);
-          }
-          else {
-            setItemsAmount(0);
-          }
-        })
-        .catch((err) => {
-          console.error(err.message);
-          setItemsAmount(0)
-        });
+    function addUserToCart() {
+        console.log("Add user to the cart")
+        setAddUserClose(true)
+    }
 
-    fetch(url, {
-      // mode: 'no-cors',
-      headers: {
-        'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin':'*',
-          Authorization: localStorage.getItem('googleToken'),
+    function handleDeleteCart() {
+        console.log("Deleting the cart")
 
-      }
-    })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("catalogItem:", data);
-          if (data["items"] !== undefined && data["items"] != null) {
-            const cartItems = data["items"]
-            const ids = cartItems.map(a => a.id)
-            setItemsIds(ids)
-            setItemsData(cartItems);
-          }
-          else {
-            setItemsData([]);
-          }
-        })
-        .catch((err) => {
-          console.error(err.message);
-          setItemsData([])
-        });
-  // }, [start, end, minCharge, maxCharge, InOut, tags, text, page]);
-  }, []);
+        const requestOptions = {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                Authorization: localStorage.getItem('googleToken'),
+            },
+            body: JSON.stringify({ids: [cartData.id]})
+        };
 
+        fetch('/api/shopping/carts', requestOptions)
+            .then(async response => {
+                const tag = await response.json()
+                if (!response.ok) {
+                    // get error message from body or default to response status
+                    const error = response.status;
+                    return Promise.reject(error);
+                }
+                console.log(tag);
+            })
+            .catch((err) => {
+                console.error(err.message);
+            });
+    }
 
     return (
-    <div className="col-span-full xl:col-span-8 bg-white shadow-lg rounded-sm border border-slate-200">
-        <header className="px-5 py-4 border-b border-slate-100">
-            <h2 className="font-semibold text-slate-800">
-                <dev className="flex">
-                    {!titleEditMode &&
+        <div className="col-span-full xl:col-span-8 bg-white shadow-lg rounded-sm border border-slate-200">
+            <Dialog open={openAddUser} onClose={handleAddUserClose}>
+                <DialogTitle>Subscribe</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        To subscribe to this website, please enter your email address here. We
+                        will send updates occasionally.
+                    </DialogContentText>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="name"
+                        label="Email Address"
+                        type="email"
+                        fullWidth
+                        variant="standard"
+                        onChange={(event) => {
+                            setUserToAdd(event.target.value);
+                        }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <button className="btn bg-indigo-500 hover:bg-indigo-600 text-white" onClick={handleAddUserClose}>Cancel</button>
+                    <button className="btn bg-indigo-500 hover:bg-indigo-600 text-white" onClick={handleAddUserCloseAndSubmit}>Subscribe</button>
+                </DialogActions>
+            </Dialog>
+            <GenericFilterContextProvider>
+                <header className="px-5 py-4 border-b border-slate-100">
+                    <h2 className="font-semibold text-slate-800">
+                        <dev className="flex">
+                            <TextField
+                                fullWidth
+                                label=""
+                                id="fullWidth"
+                                variant="standard"
+                                size="small"
+                                disabled={!contentEditMode}
+                                defaultValue={cartData.title}
+                                inputProps={{style: {fontSize: 40, fontStyle: 'bold'}}} // font size of input text
+                                InputLabelProps={{style: {fontSize: 40, fontStyle: 'bold'}}} // font size of input label
+                                onChange={(event) => {
+                                    cartData.title = event.target.value;
+                                }}
+                            />
+                            <dev className="flex">
+                                {!contentEditMode && <button
+                                    // className="flex justify-center items-center w-9 h-9 rounded-full bg-white border border-slate-200 hover:border-slate-300 text-indigo-500 shadow-sm transition duration-150 ml-2"
+
+                                    className="flex justify-center items-center w-9 h-9 rounded-full bg-white border border-slate-200 hover:border-white hover:bg-slate-500   hover:text-white text-slate-500 shadow-sm transition duration-150 ml-2"
+                                    onClick={() => {
+                                        setContentEditMode(true);
+                                    }}
+                                >
+                                    {/*<span className="sr-only">mark done</span>*/}
+                                    <ModeEditOutlineRoundedIcon/>
+                                </button>}
+                                {contentEditMode && <button
+                                    className="flex justify-center items-center w-9 h-9 rounded-full bg-white hover:bg-slate-500 border border-slate-200 hover:border-white hover:text-white text-slate-500 shadow-sm transition duration-150 ml-2"
+                                    onClick={() => {
+                                        setContentEditMode(false);
+                                        updateCartMetadata()
+                                    }}
+                                >
+                                    <span className="sr-only">mark done</span>
+                                    <SaveRoundedIcon/>
+                                </button>}
+                                <button
+                                    className="flex justify-center items-center w-9 h-9 rounded-full bg-white hover:bg-slate-500 border border-slate-200 hover:border-white hover:text-white text-slate-500 shadow-sm transition duration-150 ml-2"
+                                    onClick={() => {
+                                        handleDeleteCart();
+                                    }}
+                                >
+                                    <span className="sr-only">mark done</span>
+                                    <DeleteForeverRoundedIcon/>
+                                </button>
+                            </dev>
+                        </dev>
+                    </h2>
+                    <h4 className="font-semibold text-slate-800">
+
+                        <dev className="flex">
+                            <TextField
+                                fullWidth
+                                label=""
+                                size="small"
+                                id="fullWidth"
+                                variant="standard"
+                                style={{border: 'none'}}
+                                disabled={!contentEditMode}
+                                defaultValue={cartData.description}
+                                inputProps={{style: {fontStyle: 'italic'}}} // font size of input text
+                                InputLabelProps={{style: {fontStyle: 'italic'}}} // font size of input label
+                                onChange={(event) => {
+                                    cartData.description = event.target.value;
+                                }}
+                            />
+                        </dev>
+                    </h4>
+                </header>
+                {/* This is the sharing component */}
+                <div className="font-semibold text-slate-800">
+                    <dev className="flex justify-center items-center">
+                        {usersData.map(user => {
+                            if (user.pictureUrl === undefined || user.pictureUrl === "") {
+                                return <span key={user.userIdentifier}
+                                             className="flex justify-center items-center w-8 h-8 rounded-full bg-blue-950 border-blue-950 font-semibold  text-white ml-2 text-sm border shadow-sm group-hover:text-slate-800 "
+                                >
+                                    {user.userIdentifier.charAt(0).toUpperCase()}
+                                    </span>
+                            }
+                            else {
+                                return <img key={user.userIdentifier} className="w-8 h-8 rounded-full" src={user.pictureUrl} width="32" height="32"
+                                            alt="User"/>
+                            }
+                        })}
                         <button
                             className="flex justify-center items-center w-9 h-9 rounded-full bg-white hover:bg-slate-500 border border-slate-200 hover:border-white hover:text-white text-slate-500 shadow-sm transition duration-150 ml-2"
-                            onClick={() => {setTitleEditMode(true);}}
+                            onClick={() => {
+                                addUserToCart();
+                            }}
                         >
-                            <span className="sr-only">mark done</span>
-                            <ModeEditOutlineRoundedIcon/>
+                            <AddIcon/>
                         </button>
-                    }
-                    {titleEditMode &&
                         <button
-                            className="flex justify-center items-center w-9 h-9 rounded-full bg-white hover:bg-green-500 border border-green-200 hover:border-white hover:text-white text-green-500 shadow-sm transition duration-150 ml-2"
-                            onClick={() => {handleTitleChange();}}
+                            className="flex justify-center items-center w-9 h-9 rounded-full bg-white hover:bg-slate-500 border border-slate-200 hover:border-white hover:text-white text-slate-500 shadow-sm transition duration-150 ml-2"
+                            onClick={() => {
+                                shareCart();
+                            }}
                         >
-                            <span className="sr-only">mark done</span>
-                            <DoneRoundedIcon/>
+                            <ShareIcon/>
                         </button>
-                    }
-                    <TextField
-                        fullWidth
-                        label=""
-                        id="fullWidth"
-                        variant="standard"
-                        size="small"
-                        disabled={!titleEditMode}
-                        defaultValue={cartData.title}
-                        inputProps={{style: {fontSize: 40, fontStyle: 'bold'}}} // font size of input text
-                        InputLabelProps={{style: {fontSize: 40, fontStyle: 'bold'}}} // font size of input label
-                        onChange={(event) => {cartData.title = event.target.value;}}
-                    />
-                    {!contentEditMode && <button
-                        className="flex justify-center items-center w-9 h-9 rounded-full bg-white hover:bg-slate-500 border border-slate-200 hover:border-white hover:text-white text-slate-500 shadow-sm transition duration-150 ml-2"
-                        onClick={() => {setContentEditMode(true);}}
-                    >
-                        <span className="sr-only">mark done</span>
-                        <PlaylistAddRoundedIcon/>
-                    </button>}
-                    {contentEditMode && <button
-                        className="flex justify-center items-center w-9 h-9 rounded-full bg-white hover:bg-slate-500 border border-slate-200 hover:border-white hover:text-white text-slate-500 shadow-sm transition duration-150 ml-2"
-                        onClick={() => {setContentEditMode(false);}}
-                    >
-                        <span className="sr-only">mark done</span>
-                        <SaveRoundedIcon/>
-                    </button>}
-                    <button
-                        className="flex justify-center items-center w-9 h-9 rounded-full bg-white hover:bg-slate-500 border border-slate-200 hover:border-white hover:text-white text-slate-500 shadow-sm transition duration-150 ml-2"
-                        onClick={() => {handleAddingItemsToCart();}}
-                    >
-                        <span className="sr-only">mark done</span>
-                        <DeleteForeverRoundedIcon/>
-                    </button>
-                </dev>
-            </h2>
-            <h4 className="font-semibold text-slate-800">
+                    </dev>
 
-                <dev className="flex">
-                    {!descriptionEditMode &&
-                        <button
-                            className="flex justify-center items-center w-5 h-5 rounded-full bg-white hover:bg-slate-500 border border-slate-200 hover:border-white hover:text-white text-slate-500 shadow-sm transition duration-150 ml-2"
-                            onClick={() => {setDescriptionEditMode(true);}}
-                        >
-                            <span className="sr-only">mark done</span>
-                            <ModeEditOutlineRoundedIcon/>
-                        </button>
-                    }
-                    {descriptionEditMode &&
-                        <button
-                            className="flex justify-center items-center w-9 h-9 rounded-full bg-white hover:bg-green-500 border border-green-200 hover:border-white hover:text-white text-green-500 shadow-sm transition duration-150 ml-2"
-                            onClick={() => {handleDescriptionChange();}}
-                        >
-                            <span className="sr-only">mark done</span>
-                            <DoneRoundedIcon/>
-                        </button>
-                    }
-                    <TextField
-                        fullWidth
-                        label=""
-                        size="small"
-                        id="fullWidth"
-                        variant="standard"
-                        style={{border: 'none'}}
-                        disabled={!descriptionEditMode}
-                        defaultValue={cartData.description}
-                        inputProps={{style: {fontStyle: 'italic'}}} // font size of input text
-                        InputLabelProps={{style: {fontStyle: 'italic'}}} // font size of input label
-                        onChange={(event) => {cartData.description = event.target.value;}}
-                    />
-                </dev>
-            </h4>
-        </header>
-        {itemsData.length !== 0 &&
-            <div className="p-3">
+                </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="table-auto w-full">
-              {/* Table header */}
-              <thead className="text-xs uppercase text-slate-400 bg-slate-50 rounded-sm">
-              <tr>
-                <th className="p-2">
-                  <div className="font-semibold text-center">Action</div>
-                </th>
-                <th className="p-2">
-                  <div className="font-semibold text-center"></div>
-                </th>
-                <th className="p-2">
-                  <div className="font-semibold text-center"></div>
-                </th>
-                <th className="p-2">
-                  <div className="font-semibold text-center"></div>
-                </th>
-                <th className="p-2">
-                  <div className="font-semibold text-left">Amount</div>
-                </th>
-                <th className="p-2">
-                  <div className="font-semibold text-center"></div>
-                </th>
-              </tr>
-              </thead>
-              {/* Table body */}
-              <tbody className="text-sm font-medium divide-y divide-slate-100">
-              {itemsData.map(element => {
-                return (
-                    <tr>
-                      <td className="p-2">
-                        <div className="flex space-x-4 text-center">
-                          <button
-                              className="flex justify-center items-center w-9 h-9 rounded-full bg-white hover:bg-green-500 border border-green-200 hover:border-white hover:text-white text-green-500 shadow-sm transition duration-150 ml-2"
-                              key={element["index"]}
-                              onClick={() => {handleMarkDone(element["index"], element);}}
-                          >
-                            <span className="sr-only">mark done</span>
-                            <DoneRoundedIcon/>
-                          </button>
-                          <button
-                              className="flex justify-center items-center w-9 h-9 rounded-full bg-white hover:bg-red-500 border border-red-200 hover:border-white hover:text-white text-red-500 shadow-sm transition duration-150 ml-2"
-                              key={element["index"]}
-                              onClick={() => {handleMarkUndone(element["index"], element);}}
-                          >
-                            <span className="sr-only">mark skip</span>
-                            <CloseRoundedIcon/>
-                          </button>
+                {/* This is the exiting items table */}
+                {itemsData.length !== 0 &&
+                    <div className="p-3">
+
+                        {/* Table */}
+                        <div className="overflow-x-auto">
+                            <table className="table-auto w-full">
+                                {/* Table header */}
+                                <thead className="text-xs uppercase text-slate-400 bg-slate-50 rounded-sm">
+                                <tr>
+                                    <th className="p-2">
+                                        <div className="font-semibold text-center">Action</div>
+                                    </th>
+                                    <th className="p-2">
+                                        <div className="font-semibold text-center"></div>
+                                    </th>
+                                    <th className="p-2">
+                                        <div className="font-semibold text-center"></div>
+                                    </th>
+                                    <th className="p-2">
+                                        <div className="font-semibold text-center"></div>
+                                    </th>
+                                    <th className="p-2">
+                                        <div className="font-semibold text-left">Amount</div>
+                                    </th>
+                                    <th className="p-2">
+                                        <div className="font-semibold text-center">Comment</div>
+                                    </th>
+                                    <th className="p-2">
+                                        <div className="font-semibold text-center"></div>
+                                    </th>
+                                </tr>
+                                </thead>
+                                {/* Table body */}
+                                <tbody className="text-sm font-medium divide-y divide-slate-100">
+                                {itemsData.map(element => {
+                                    return (
+                                        <tr>
+                                            <td className="p-2">
+                                                <div className="flex space-x-4 text-center">
+                                                    <button
+                                                        className="flex justify-center items-center w-9 h-9 rounded-full bg-white hover:bg-green-500 border border-green-200 hover:border-white hover:text-white text-green-500 shadow-sm transition duration-150 ml-2"
+                                                        key={element["index"]}
+                                                        onClick={() => {
+                                                            handleMarkDone(element["index"], element);
+                                                        }}
+                                                    >
+                                                        <span className="sr-only">mark done</span>
+                                                        <DoneRoundedIcon/>
+                                                    </button>
+                                                    <button
+                                                        className="flex justify-center items-center w-9 h-9 rounded-full bg-white hover:bg-red-500 border border-red-200 hover:border-white hover:text-white text-red-500 shadow-sm transition duration-150 ml-2"
+                                                        key={element["index"]}
+                                                        onClick={() => {
+                                                            handleMarkUndone(element["index"], element);
+                                                        }}
+                                                    >
+                                                        <span className="sr-only">mark skip</span>
+                                                        <CloseRoundedIcon/>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td className="p-2">
+                                                <div className="text-center text-slate-500">{element.name}</div>
+                                            </td>
+                                            <td className="p-2">
+                                                <div className="circle-container">
+                                                    {element.pictureUrl !== undefined && element.pictureUrl !== "" &&
+                                                        <img
+                                                            src={element.pictureUrl}
+                                                            alt="Selected"
+                                                            className="image-in-circle"
+                                                        />}
+                                                    {element.pictureUrl === "" && <ImageNotSupportedIcon/>}
+                                                </div>
+                                            </td>
+                                            <td className="p-2">
+                                                <div className="text-center text-slate-500">{element.amount}</div>
+                                            </td>
+                                            <td className="p-2">
+                                                <div className="flex space-x-4 text-center">
+                                                    <button
+                                                        className="flex justify-center items-center w-9 h-9 rounded-full bg-white border border-slate-200 hover:border-slate-300 text-indigo-500 shadow-sm transition duration-150 ml-2"
+                                                        key={element["index"]}
+                                                        onClick={() => {
+                                                            handleIncrease(element);
+                                                        }}
+                                                    >
+                                                        <span className="sr-only">increase</span>
+                                                        <AddRoundedIcon/>
+                                                    </button>
+
+                                                    <button
+                                                        className="flex justify-center items-center w-9 h-9 rounded-full bg-white border border-slate-200 hover:border-slate-300 text-indigo-500 shadow-sm transition duration-150 ml-2"
+                                                        key={element["index"]}
+                                                        onClick={() => {
+                                                            handleDecrease(element);
+                                                        }}
+                                                    >
+                                                        <span className="sr-only">decrease</span>
+                                                        <RemoveRoundedIcon/>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td className="p-2 text-center">
+                                                {/*<div className="text-center text-slate-500">{element.comment}</div>*/}
+                                                <TextField
+                                                    // fullWidth
+                                                    label=""
+                                                    // id="fullWidth"
+                                                    variant="standard"
+                                                    size="small"
+                                                    disabled={!contentEditMode}
+                                                    defaultValue={element.comment}
+                                                    // inputProps={{style: {fontSize: 40, fontStyle: 'bold'}}} // font size of input text
+                                                    // InputLabelProps={{style: {fontSize: 40, fontStyle: 'bold'}}} // font size of input label
+                                                    onChange={event => handleComment(element, event.target.value)}
+                                                />
+                                            </td>
+                                            <td className="p-2 text-center">
+                                                <button
+                                                    className="flex justify-center items-center w-9 h-9 rounded-full bg-white border border-slate-200 hover:border-slate-300 text-indigo-500 shadow-sm transition duration-150 ml-2"
+                                                    key={element["index"]}
+                                                    onClick={() => {
+                                                        handleDeleteElement(element);
+                                                    }}
+                                                >
+                                                    <span className="sr-only">Delete</span>
+                                                    <DeleteForeverRoundedIcon/>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                                </tbody>
+                            </table>
+
                         </div>
-                      </td>
-                      <td className="p-2">
-                        <div className="text-center text-slate-500">{element.name}</div>
-                      </td>
-                      <td className="p-2">
-                        <div className="circle-container">
-                          <img
-                              src={element.pictureUrl}
-                              alt="Selected"
-                              className="image-in-circle"
-                          />
-                        </div>
-                      </td>
-                      <td className="p-2">
-                        <div className="text-center text-slate-500">{element.amount}</div>
-                      </td>
-                      <td className="p-2">
-                        <div className="flex space-x-4 text-center">
-                          <button
-                              className="flex justify-center items-center w-9 h-9 rounded-full bg-white border border-slate-200 hover:border-slate-300 text-indigo-500 shadow-sm transition duration-150 ml-2"
-                              key={element["index"]}
-                              onClick={() => {handleIncrease(element["index"], element);}}
-                          >
-                            <span className="sr-only">increase</span>
-                            <AddRoundedIcon/>
-                          </button>
+                    </div>
+                }
+                {/*{itemsData.length === 0 &&*/}
+                {/*    <div>Empty Cart</div>*/}
+                {/*}*/}
 
-                          <button
-                              className="flex justify-center items-center w-9 h-9 rounded-full bg-white border border-slate-200 hover:border-slate-300 text-indigo-500 shadow-sm transition duration-150 ml-2"
-                              key={element["index"]}
-                              onClick={() => {handleDecrease(element["index"], element);}}
-                          >
-                            <span className="sr-only">decrease</span>
-                            <RemoveRoundedIcon/>
-                          </button>
-                        </div>
-                      </td>
-                      <td className="p-2 text-center">
-                        <button
-                            className="flex justify-center items-center w-9 h-9 rounded-full bg-white border border-slate-200 hover:border-slate-300 text-indigo-500 shadow-sm transition duration-150 ml-2"
-                            key={element["index"]}
-                            onClick={() => {handleDelete(element["index"], element);}}
-                        >
-                          <span className="sr-only">Delete</span>
-                          <DeleteForeverRoundedIcon/>
-                        </button>
-                      </td>
-                    </tr>
-                )
-              })}
-              </tbody>
-            </table>
-
-          </div>
+                {/* This is the adding items frame table */}
+                <footer>
+                    {contentEditMode && <CatalogMiniTable cartData={cartData} onItemAdded={handleItemAdded}/>}
+                </footer>
+            </GenericFilterContextProvider>
         </div>
-        }
-        {/*{itemsData.length === 0 &&*/}
-        {/*    <div>Empty Cart</div>*/}
-        {/*}*/}
-        <footer>
-            {contentEditMode && <CatalogMiniTable cartData={cartData} />}
-        </footer>
-      </div>
-  );
+    );
 }
 
 

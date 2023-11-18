@@ -15,6 +15,7 @@ import Pagination from '@mui/material/Pagination';
 import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded';
 import CloudUploadRoundedIcon from "@mui/icons-material/CloudUploadRounded";
 import AddShoppingCartRoundedIcon from '@mui/icons-material/AddShoppingCartRounded';
+import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
 
 const handleOnSubmit = (e, key) => {
     e.preventDefault();
@@ -690,18 +691,20 @@ function CatalogTable() {
         var countUrl
 
         var filters = ""
-        if (tags !== "") filters = filters + ',tags:in:' + tags.join(":")
+        if (tags.length !== 0) filters = filters + ',tags:in:' + tags.join(":")
         if (text !== "") filters = filters + ',name:in:' + text
         console.log("Filter = ", filters)
 
         const paginationParams = 'skip=' + ((page-1) * 20) + '&limit=20';
 
+        // const host = 'http://localhost:8088'
+        const host = ''
         if (filters !== "") {
-            url = 'http://localhost:8080' + '/api/shopping/catalog?filters=' + filters.substring(1) + '&' + paginationParams
-            countUrl = 'http://localhost:8080' + '/api/shopping/catalog-count?filters=' + filters.substring(1)
+            url = host + '/api/shopping/catalog?filters=' + filters.substring(1) + '&' + paginationParams
+            countUrl = host + '/api/shopping/catalog/count?filters=' + filters.substring(1)
         } else {
-            url = 'http://localhost:8080' + '/api/shopping/catalog' + '?' + paginationParams
-            countUrl = 'http://localhost:8080' + '/api/shopping/catalog-count'
+            url = host + '/api/shopping/catalog' + '?' + paginationParams
+            countUrl = host + '/api/shopping/catalog/count'
         }
 
         fetch(countUrl, {
@@ -913,11 +916,13 @@ function CatalogTable() {
                                                 height: '80px'
                                             }}
                                         >
-                                            <img
-                                                style={{ height: 'auto', maxWidth: '100px' }}
-                                                alt="my image"
-                                                src={element.pictureUrl}
-                                            ></img>
+                                            {element.pictureUrl !== undefined && element.pictureUrl !== "" &&
+                                                <img
+                                                    style={{ height: 'auto', maxWidth: '100px' }}
+                                                    alt="my image"
+                                                    src={element.pictureUrl}
+                                                ></img>}
+                                            {element.pictureUrl === "" && <ImageNotSupportedIcon/>}
                                         </div>
                                     </td>
                                     <td className="p-2">

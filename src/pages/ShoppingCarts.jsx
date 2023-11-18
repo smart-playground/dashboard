@@ -91,22 +91,24 @@ function ShoppingCarts() {
     }
 
     useEffect(() => {
-        var url
-        var countUrl
+        let url;
+        let countUrl
 
-        var filters = ""
+        let filters = ""
         if (tags !== "") filters = filters + ',tags:in:' + tags.join(":")
         if (text !== "") filters = filters + ',name:in:' + text
         console.log("Filter = ", filters)
 
         const paginationParams = 'skip=' + ((page-1) * 20) + '&limit=20';
 
+        // const host = 'http://localhost:8088'
+        const host = ''
         if (filters !== "") {
-            url = 'http://localhost:8080' + '/api/shopping/carts?filters=' + filters.substring(1) + '&' + paginationParams
-            countUrl = 'http://localhost:8080' + '/api/shopping/carts/count?filters=' + filters.substring(1)
+            url = host + '/api/shopping/carts?filters=' + filters.substring(1) + '&' + paginationParams
+            countUrl = host + '/api/shopping/carts/count?filters=' + filters.substring(1)
         } else {
-            url = 'http://localhost:8080' + '/api/shopping/carts' + '?' + paginationParams
-            countUrl = 'http://localhost:8080' + '/api/shopping/carts/count'
+            url = host + '/api/shopping/carts' + '?' + paginationParams
+            countUrl = host + '/api/shopping/carts/count'
         }
 
         fetch(countUrl, {
@@ -130,7 +132,7 @@ function ShoppingCarts() {
                 }
             })
             .catch((err) => {
-                console.error(err.message);
+                console.error("Failed to count carts, reason:", err.message)
                 setCartsAmount(0)
             });
 
@@ -155,7 +157,7 @@ function ShoppingCarts() {
                 }
             })
             .catch((err) => {
-                console.error(err.message);
+                console.error("Failed to get carts, reason:", err.message)
                 setCarts([])
             });
     // }, [start, end, minCharge, maxCharge, InOut, tags, text, page]);
@@ -180,7 +182,7 @@ function ShoppingCarts() {
                             <div className="sm:flex sm:justify-between sm:items-center mb-3 ">
                                 <div className="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
                                     {/*<Tagspicker/>*/}
-                                    <Textpicker/>
+                                    <Textpicker  data={{}}/>
                                 </div>
                             </div>
 
